@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DC Cable Size Calculator</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    
+    .container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      text-align: center;
+      color: #4CAF50;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #888;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>DC Cable Size Calculator</h2>
+
+    <label for="voltage">Voltage (V)</label>
+    <select id="voltage">
+      <option value="12">12V</option>
+      <option value="24" selected>24V</option>
+      <option value="48">48V</option>
+    </select>
+
+    <label for="voltageDrop">Voltage Drop (%)</label>
+    <select id="voltageDrop">
+      <option value="3">3%</option>
+      <option value="4">4%</option>
+      <option value="5" selected>5%</option>
+      <option value="10">10%</option>
+    </select>
+
+    <label for="material">Conductor Material</label>
+    <select id="material">
+      <option value="copper" selected>Copper</option>
+      <option value="aluminium">Aluminium</option>
+    </select>
+
+    <label for="grouping">Cable Grouping</label>
+    <select id="grouping">
+      <option value="1" selected>Single Cable</option>
+      <option value="0.9">Two Cables</option>
+    </select>
+
+    <label for="temperature">Ambient Temperature (°C)</label>
+    <select id="temperature">
+      <option value="1" selected>30°C</option>
+      <option value="0.94">40°C</option>
+      <option value="0.88">50°C</option>
+      <option value="0.82">60°C</option>
+    </select>
+
+    <label for="installation">Installation Method</label>
+    <select id="installation">
+      <option value="1" selected>Open Air</option>
+      <option value="0.95">In Conduit</option>
+      <option value="0.9">Buried in Ground</option>
+    </select>
+
+    <label for="length">Cable Length (one-way, meters)</label>
+    <input type="number" id="length" placeholder="e.g. 100">
+
+    <label for="current">Current (Amps)</label>
+    <input type="number" id="current" placeholder="e.g. 1">
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="result" id="result">Minimum size cable recommended: –</div>
+
+    <div class="footer">
+      <p>Designed for accuracy, simplicity, and ease of use. <br>Ensure to verify values with local standards.</p>
+    </div>
+  </div>
+
+  <script>
+    const standardCableSizes = [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];  // Standaard kabelmaten in mm²
+
+    function getStandardCableSize(size) {
+      for (let i = 0; i < standardCableSizes.length; i++) {
+        if (size <= standardCableSizes[i]) {
+          return standardCableSizes[i];  // Geeft de eerste grotere maat dan de berekende waarde
+        }
+      }
+      return standardCableSizes[standardCableSizes.length - 1];  // Als het groter is dan alles, geef dan de grootste maat
+    }
+
+    function calculate() {
+      const V = parseFloat(document.getElementById('voltage').value);
+      const D = parseFloat(document.getElementById('voltageDrop').value);
+      const I = parseFloat(document.getElementById('current').value);
+      const L = parseFloat(document.getElementById('length').value);
+      const material = document.getElementById('material').value;
+
+      const K1 = parseFloat(document.getElementById('temperature').value); // temperature factor
+      const K2 = parseFloat(document.getElementById('grouping').value);    // grouping factor
+      const K3 = parseFloat(document.getElementById('installation').value); // installation factor
+
+      if (isNaN(I) || isNaN(L) || I <= 0 || L <= 0) {
+        document.getElementById('result').innerText = "Please enter valid values for current and length.";
+        return;
+      }
+
+      const rho = material === 'copper' ? 0.017241 : 0.028264;
+
+      // Formula:
+      // A = (I × L × 2 × ρ × K1 × K2 × K3) / (V × (D / 100))
+      const A = (I * L * 2 * rho * K1 * K2 * K3) / (V * (D / 100));
+      const standardSize = getStandardCableSize(A);
+
+      document.getElementById('result').innerText =
+        `Minimum size cable recommended: ${standardSize} mm²`;
+    }
+  </script>
+
+</body>
+</html>
